@@ -70,6 +70,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-firestore-ktx'
 
 
+    // material progress bar
+    implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
 
     //Ktor dependencies (you can retorfit instead)
     implementation("io.ktor:ktor-client-android:$ktor_version")
