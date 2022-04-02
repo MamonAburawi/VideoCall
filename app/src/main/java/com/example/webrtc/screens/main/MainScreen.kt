@@ -1,6 +1,5 @@
 package com.example.webrtc.screens.main
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,14 +8,11 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
 import com.example.webrtc.R
 
 import com.example.webrtc.databinding.MainScreenBinding
 import com.example.webrtc.webrtc.Constants
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 
 
 class MainScreen : Fragment() {
@@ -33,7 +29,7 @@ class MainScreen : Fragment() {
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
 
 
-        Constants.isIntiatedNow = true
+        Constants.isInitiatedNow = true
         Constants.isCallEnded = true
 
 

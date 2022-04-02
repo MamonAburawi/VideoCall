@@ -9,15 +9,15 @@ import androidx.lifecycle.ViewModelProvider
 import io.ktor.http.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@RequiresApi(Build.VERSION_CODES.N)
-@ExperimentalCoroutinesApi
-class VideoCallFactory(private val context: Application): ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        if(modelClass.isAssignableFrom(VideoCallViewModel::class.java)){
-            return VideoCallViewModel(context) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-
-}
-
+//@RequiresApi(Build.VERSION_CODES.N)
+//@ExperimentalCoroutinesApi
+//class VideoCallFactory(private val context: Application): ViewModelProvider.Factory {
+//    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+//        if(modelClass.isAssignableFrom(VideoCallViewModel::class.java)){
+//            return VideoCallViewModel(context) as T
+//        }
+//        throw IllegalArgumentException("Unknown ViewModel class")
+//    }
+//
+//}
+//

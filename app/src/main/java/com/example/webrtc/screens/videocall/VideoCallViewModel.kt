@@ -1,13 +1,9 @@
 package com.example.webrtc.screens.videocall
 
-import android.annotation.SuppressLint
 import android.app.Application
-import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
-import com.example.webrtc.R
 import com.example.webrtc.databinding.VideoCallScreenBinding
 import com.example.webrtc.webrtc.*
 import io.ktor.util.*
@@ -16,9 +12,11 @@ import org.webrtc.*
 
 @ExperimentalCoroutinesApi
 @KtorExperimentalAPI
+@DelicateCoroutinesApi
 @RequiresApi(Build.VERSION_CODES.N)
 class VideoCallViewModel(application: Application): AndroidViewModel(application) {
 
+    val app = application
 
     companion object{
         const val TAG = "VideoCallViewModel"
@@ -27,15 +25,10 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
     private val jobMain = CoroutineScope(Dispatchers.Main + Job())
     private val jobIO = CoroutineScope(Dispatchers.IO + Job())
 
-
-    private  var rtcClient: RTCClient? = null
     private val audioManager: RTCAudioManager by lazy{
        RTCAudioManager.create(application)
     }
 
-
-
-//    private var audioManager: RTCAudioManager = RTCAudioManager.create(application)
 
 
     private val _inSpeakerMode = MutableLiveData<Boolean>()
@@ -47,11 +40,13 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
     private val _isVideoResumed = MutableLiveData<Boolean>()
     val isVideoResumed: LiveData<Boolean> = _isVideoResumed
 
+    private lateinit var rtcClientManager : RTCClientManager
+
+
 
     private val sdpObserver = object : AppSdpObserver() {
         override fun onCreateSuccess(p0: SessionDescription?) {
             super.onCreateSuccess(p0)
-//            signallingClient.send(p0)
         }
     }
 
@@ -64,6 +59,16 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
         _isVideoResumed.value = true
         audioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
     }
+
+    fun initConnection(
+        binding: VideoCallScreenBinding,
+        signallingClient: SignalingClient,
+        isJoin: Boolean,
+        meetingID: String
+    ){
+        rtcClientManager = RTCClientManager(app,binding,signallingClient,sdpObserver,isJoin,meetingID)
+    }
+
 
 
     fun isSpeakerEnabled(){
@@ -78,111 +83,64 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
         }
     }
 
+
     fun isMicrophoneEnabled(){
-        jobMain.launch {
+        viewModelScope.launch {
             _isUnMute.value = _isUnMute.value != true
-            rtcClient!!.enableAudio(_isUnMute.value!!)
+            rtcClientManager.enableAudio(_isUnMute.value!!)
         }
     }
 
 
     fun isVideoResumed(){
-        jobMain.launch {
+        viewModelScope.launch {
             _isVideoResumed.value = isVideoResumed.value != true
-            rtcClient!!.enableVideo(isVideoResumed.value!!)
+            rtcClientManager.enableVideo(isVideoResumed.value!!)
         }
     }
 
     fun switchCamera(){
-        jobMain.launch {
-            rtcClient!!.switchCamera()
+        viewModelScope.launch {
+            rtcClientManager.switchCamera()
         }
     }
 
 
     fun onRemoteSessionReceived(description: SessionDescription){
-        rtcClient!!.onRemoteSessionReceived(description)
+        rtcClientManager.onRemoteSessionReceived(description)
     }
 
     fun answer(meetingID: String){
-        rtcClient!!.answer(sdpObserver,meetingID)
-    }
-
-    fun endCall(meetingID: String){
-        jobIO.launch {
-            rtcClient!!.endCall(meetingID)
-            rtcClient!!.enableAudio(false)
-            rtcClient!!.enableVideo(false)
-//            audioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.NONE)
+        viewModelScope.launch {
+            rtcClientManager.answer(sdpObserver,meetingID)
         }
     }
 
+    fun call(meetingID: String){
+        viewModelScope.launch {
+            rtcClientManager.call(sdpObserver, meetingID)
+        }
+    }
+
+    fun endCall(meetingID: String){
+        jobMain.launch {
+            rtcClientManager.endCall(meetingID)
+            rtcClientManager.enableAudio(false)
+            rtcClientManager.enableVideo(false)
+
+            audioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.NONE)
+        }
+
+
+    }
+
     fun onIceCandidateReceived(iceCandidate: IceCandidate){
-        rtcClient!!.addIceCandidate(iceCandidate)
+        viewModelScope.launch {
+            rtcClientManager.addIceCandidate(iceCandidate)
+        }
     }
 
 
-    fun onCameraAndAudioPermissionGranted(binding: VideoCallScreenBinding, isJoin: Boolean , signallingClient: SignalingClient,meetingID: String) {
-        rtcClient = RTCClient(
-                getApplication(),
-                object : PeerConnectionObserver(){
-                    override fun onIceCandidate(p0: IceCandidate?) {
-                        super.onIceCandidate(p0)
-                        jobIO.launch {
-                            signallingClient.sendIceCandidate(p0, isJoin)
-                        }
-                        jobIO.launch {
-                            rtcClient!!.addIceCandidate(p0)
-                        }
-                    }
-
-                    override fun onAddStream(p0: MediaStream?) {
-                        super.onAddStream(p0)
-                        Log.e(TAG, "onAddStream: $p0")
-                        jobMain.launch {
-                            p0?.videoTracks?.get(0)?.addSink(binding.remoteView)
-                        }
-
-                    }
-
-                    override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {
-                        Log.e(TAG, "onIceConnectionChange: $p0")
-                    }
-
-                    override fun onIceConnectionReceivingChange(p0: Boolean) {
-                        Log.e(TAG, "onIceConnectionReceivingChange: $p0")
-                    }
-
-                    override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) {
-                        Log.e(TAG, "onConnectionChange: $newState")
-                    }
-
-                    override fun onDataChannel(p0: DataChannel?) {
-                        Log.e(TAG, "onDataChannel: $p0")
-                    }
-
-                    override fun onStandardizedIceConnectionChange(newState: PeerConnection.IceConnectionState?) {
-                        Log.e(TAG, "onStandardizedIceConnectionChange: $newState")
-                    }
-
-                    override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
-                        Log.e(TAG, "onAddTrack: $p0 \n $p1")
-                    }
-
-                    override fun onTrack(transceiver: RtpTransceiver?) {
-                        Log.e(TAG, "onTrack: $transceiver" )
-                    }
-                })
-
-
-        rtcClient!!.initSurfaceView(binding.remoteView)
-        rtcClient!!.initSurfaceView(binding.localView)
-        rtcClient!!.startLocalVideoCapture(binding.localView)
-        if (!isJoin)
-            jobIO.launch {
-                rtcClient!!.call(sdpObserver,meetingID)
-            }
-    }
 
 
     override fun onCleared() {

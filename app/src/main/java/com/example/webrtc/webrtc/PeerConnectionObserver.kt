@@ -3,36 +3,27 @@ package com.example.webrtc.webrtc
 import org.webrtc.*
 
 open class PeerConnectionObserver : PeerConnection.Observer {
-    override fun onIceCandidate(p0: IceCandidate?) {
-    }
 
-    override fun onDataChannel(p0: DataChannel?) {
-    }
+    override  fun onIceCandidate(p0: IceCandidate?) {}
 
-    override fun onIceConnectionReceivingChange(p0: Boolean) {
-    }
+    override fun onDataChannel(p0: DataChannel?) {}
 
-    override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {
-    }
+    override fun onIceConnectionReceivingChange(p0: Boolean) {}
 
-    override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {
-    }
+    override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {}
 
-    override fun onAddStream(p0: MediaStream?) {
-    }
+    override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {}
 
-    override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
-    }
+    override fun onAddStream(p0: MediaStream?) {}
 
-    override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {
-    }
+    override fun onSignalingChange(p0: PeerConnection.SignalingState?) {}
 
-    override fun onRemoveStream(p0: MediaStream?) {
-    }
+    override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {}
 
-    override fun onRenegotiationNeeded() {
-    }
+    override fun onRemoveStream(p0: MediaStream?) {}
 
-    override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
-    }
+    override fun onRenegotiationNeeded() {}
+
+    override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {}
+
 }

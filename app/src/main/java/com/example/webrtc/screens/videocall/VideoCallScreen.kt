@@ -19,16 +19,17 @@ import androidx.core.view.isGone
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.webrtc.R
 import com.example.webrtc.databinding.VideoCallScreenBinding
 import com.example.webrtc.webrtc.*
 import io.ktor.util.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.webrtc.*
 
 
+@DelicateCoroutinesApi
 @KtorExperimentalAPI
 @ExperimentalCoroutinesApi
 @RequiresApi(Build.VERSION_CODES.N)
@@ -38,11 +39,12 @@ class VideoCallScreen : Fragment() {
         private const val CAMERA_AUDIO_PERMISSION_REQUEST_CODE = 1
         private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
         private const val AUDIO_PERMISSION = Manifest.permission.RECORD_AUDIO
+
+        private const val TAG = "VideoCall"
     }
 
     private lateinit var signallingClient: SignalingClient
 
-    val TAG = "MainActivity"
 
     private var meetingID : String = ""
     private var isJoin = false
@@ -57,8 +59,8 @@ class VideoCallScreen : Fragment() {
         meetingID = arguments?.get("meeting_id") as String
         isJoin = arguments?.get("isjson") as Boolean
 
-        val factory = VideoCallFactory(requireActivity().application)
-        viewModel = ViewModelProviders.of(this,factory).get(VideoCallViewModel::class.java)
+//        val factory = VideoCallFactory(requireActivity().application)
+        viewModel = ViewModelProviders.of(this).get(VideoCallViewModel::class.java)
 
 
         checkCameraAndAudioPermission()
@@ -99,6 +101,9 @@ class VideoCallScreen : Fragment() {
 
 
 
+//            viewModel.call(meetingID)
+
+
             switchCameraButton.setOnClickListener {
                 viewModel.switchCamera()
             }
@@ -129,11 +134,10 @@ class VideoCallScreen : Fragment() {
 
 
     }
+
     private fun checkCameraAndAudioPermission() {
-        if ((ContextCompat.checkSelfPermission(requireActivity(), CAMERA_PERMISSION)
-                        != PackageManager.PERMISSION_GRANTED) &&
-                (ContextCompat.checkSelfPermission(requireActivity(),AUDIO_PERMISSION)
-                        != PackageManager.PERMISSION_GRANTED)) {
+        if ((ContextCompat.checkSelfPermission(requireActivity(), CAMERA_PERMISSION) != PackageManager.PERMISSION_GRANTED) &&
+                (ContextCompat.checkSelfPermission(requireActivity(),AUDIO_PERMISSION) != PackageManager.PERMISSION_GRANTED)) {
             requestCameraAndAudioPermission()
         } else {
             onCameraAndAudioPermissionGranted()
@@ -142,27 +146,34 @@ class VideoCallScreen : Fragment() {
 
     private fun onCameraAndAudioPermissionGranted(){
         signallingClient =  SignalingClient(meetingID,createSignallingClientListener())
-        viewModel.onCameraAndAudioPermissionGranted(binding,isJoin,signallingClient,meetingID)
+        viewModel.initConnection(binding,signallingClient,isJoin,meetingID)
     }
 
 
     private fun createSignallingClientListener() = object : SignalingClientListener {
+
         override fun onConnectionEstablished() {
+
+            Log.i(TAG,"onConnection Stable")
             binding.endCallButton.isClickable = true
         }
 
 
         override fun onOfferReceived(description: SessionDescription) {
             viewModel.onRemoteSessionReceived(description)
-            Constants.isIntiatedNow = false
+            Constants.isInitiatedNow = false
             viewModel.answer(meetingID)
             binding.remoteViewLoading.isGone = true
+            Log.i(TAG,"onOffer Received")
         }
 
+
+        // when the answer (user is other side) is join to connection.
         override fun onAnswerReceived(description: SessionDescription) {
             viewModel.onRemoteSessionReceived(description)
-            Constants.isIntiatedNow = false
+            Constants.isInitiatedNow = false
             binding.remoteViewLoading.isGone = true
+            Log.i(TAG,"onAnswer Received")
         }
 
         override fun onIceCandidateReceived(iceCandidate: IceCandidate) {
@@ -173,7 +184,7 @@ class VideoCallScreen : Fragment() {
             if (!Constants.isCallEnded) {
                 Constants.isCallEnded = true
                 viewModel.endCall(meetingID)
-                signallingClient.destroy() /// remove this line if there is any error
+//                signallingClient.destroy() /// remove this line if there is any error
                findNavController().navigate(R.id.action_videoCallScreen_to_mainScreen)
             }
         }

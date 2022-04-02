@@ -5,10 +5,18 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.webrtc.Call
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import org.webrtc.*
+import java.util.*
 
+@DelicateCoroutinesApi
 @RequiresApi(Build.VERSION_CODES.N)
 class RTCClient(
         context: Application,
@@ -18,13 +26,23 @@ class RTCClient(
     companion object {
         private const val LOCAL_TRACK_ID = "local_track"
         private const val LOCAL_STREAM_ID = "local_track"
+
+        private const val TAG = "RTCClient"
+
+        private const val CALLS_COLLECTION = "calls"
+        private const val CANDIDATES_COLLECTION = "candidates"
+        private const val FIELD_TYPE = "type"
+        private const val FIELD_ID = "id"
+        private const val FIELD_START_TIME = "startTime"
+        private const val FIELD_END_TIME = "endTime"
+
     }
 
     private val rootEglBase: EglBase = EglBase.create()
 
     private var localAudioTrack : AudioTrack? = null
     private var localVideoTrack : VideoTrack? = null
-    val TAG = "RTCClient"
+
 
     var remoteSessionDescription : SessionDescription? = null
 
@@ -40,11 +58,13 @@ class RTCClient(
     )
 
     private val peerConnectionFactory by lazy { buildPeerConnectionFactory() }
-    private val videoCapturer by lazy { getVideoCapturer(context) }
-
+    private val videoCapture by lazy { getVideoCapture(context) }
     private val audioSource by lazy { peerConnectionFactory.createAudioSource(MediaConstraints())}
     private val localVideoSource by lazy { peerConnectionFactory.createVideoSource(false) }
     private val peerConnection by lazy { buildPeerConnection(observer) }
+
+
+
 
     private fun initPeerConnectionFactory(context: Application) {
         val options = PeerConnectionFactory.InitializationOptions.builder(context)
@@ -71,7 +91,7 @@ class RTCClient(
             observer
     )
 
-    private fun getVideoCapturer(context: Context) =
+    private fun getVideoCapture(context: Context) =
             Camera2Enumerator(context).run {
                 deviceNames.find {
                     isFrontFacing(it)
@@ -86,11 +106,13 @@ class RTCClient(
         init(rootEglBase.eglBaseContext, null)
     }
 
+    //todo local camera is hidden after the answer join to call.
+
     fun startLocalVideoCapture(localVideoOutput: SurfaceViewRenderer) {
         val surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, rootEglBase.eglBaseContext)
-        (videoCapturer as VideoCapturer).initialize(surfaceTextureHelper, localVideoOutput.context, localVideoSource.capturerObserver)
-        videoCapturer.startCapture(320, 240, 60)
-        localAudioTrack = peerConnectionFactory.createAudioTrack(LOCAL_TRACK_ID + "_audio", audioSource);
+        (videoCapture as VideoCapturer).initialize(surfaceTextureHelper, localVideoOutput.context, localVideoSource.capturerObserver)
+        videoCapture.startCapture(320, 240, 60)
+        localAudioTrack = peerConnectionFactory.createAudioTrack(LOCAL_TRACK_ID + "_audio", audioSource)
         localVideoTrack = peerConnectionFactory.createVideoTrack(LOCAL_TRACK_ID, localVideoSource)
         localVideoTrack?.addSink(localVideoOutput)
         val localStream = peerConnectionFactory.createLocalMediaStream(LOCAL_STREAM_ID)
@@ -99,7 +121,7 @@ class RTCClient(
         peerConnection?.addStream(localStream)
     }
 
-    private fun PeerConnection.call(sdpObserver: SdpObserver, meetingID: String) {
+    private suspend fun PeerConnection.call(sdpObserver: SdpObserver, meetingID: String) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
         }
@@ -107,25 +129,19 @@ class RTCClient(
         createOffer(object : SdpObserver by sdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
                 setLocalDescription(object : SdpObserver {
+
                     override fun onSetFailure(p0: String?) {
                         Log.e(TAG, "onSetFailure: $p0")
                     }
 
                     override fun onSetSuccess() {
-                        val offer = hashMapOf(
-                                "sdp" to desc?.description,
-                                "type" to desc?.type
-                        )
-                        db.collection("calls").document(meetingID)
-                                .set(offer)
-                                .addOnSuccessListener {
-                                    Log.i(TAG, "Call")
-                                    Log.i(TAG, "sdp: ${desc!!.description} \n type: ${desc.type}")
-                                }
-                                .addOnFailureListener { e ->
-                                    Log.e(TAG, "Call: Error adding document", e)
-                                }
-                        Log.e(TAG, "onSetSuccess")
+                        GlobalScope.launch(Dispatchers.IO) {
+                            val call = Call(meetingID, Date(),Date(),desc?.type.toString(),desc?.description.toString())
+                            db.collection(CALLS_COLLECTION)
+                                .document(meetingID)
+                                .set(call).await()
+                            Log.e(TAG, "onSetSuccess")
+                        }
                     }
 
                     override fun onCreateSuccess(p0: SessionDescription?) {
@@ -153,20 +169,24 @@ class RTCClient(
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
         }
+
         createAnswer(object : SdpObserver by sdpObserver {
+
             override fun onCreateSuccess(desc: SessionDescription?) {
-                val answer = hashMapOf(
-                        "sdp" to desc?.description,
-                        "type" to desc?.type
-                )
-                db.collection("calls").document(meetingID)
-                        .set(answer)
-                        .addOnSuccessListener {
-                            Log.e(TAG, "Answer")
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(TAG, "Answer: Error adding document", e)
-                        }
+                GlobalScope.launch(Dispatchers.IO) {
+                    val callRef = db.collection(CALLS_COLLECTION).document(meetingID).get().await()
+                    if (callRef != null) {
+                        val data = callRef.toObject(Call::class.java)
+                        data?.type = desc?.type.toString()
+                        data?.sdp = desc?.description.toString()
+                        data?.startTime = Date()
+
+                        db.collection(CALLS_COLLECTION).document(data!!.id)
+                            .update(data.toHashMap()).await()
+                    }
+                }
+
+
                 setLocalDescription(object : SdpObserver {
                     override fun onSetFailure(p0: String?) {
                         Log.e(TAG, "onSetFailure: $p0")
@@ -193,7 +213,11 @@ class RTCClient(
         }, constraints)
     }
 
-    fun call(sdpObserver: SdpObserver, meetingID: String) = peerConnection?.call(sdpObserver, meetingID)
+
+     suspend fun call(sdpObserver: SdpObserver, meetingID: String) {
+        return peerConnection?.call(sdpObserver, meetingID)!!
+    }
+
 
     fun answer(sdpObserver: SdpObserver, meetingID: String) = peerConnection?.answer(sdpObserver, meetingID)
 
@@ -224,45 +248,40 @@ class RTCClient(
     }
 
 
-    fun endCall(meetingID: String) {
-        db.collection("calls").document(meetingID).collection("candidates")
-                .get().addOnSuccessListener {
-                    val iceCandidateArray: MutableList<IceCandidate> = mutableListOf()
-                    for ( dataSnapshot in it) {
-                        if (dataSnapshot.contains("type") && dataSnapshot["type"]=="offerCandidate") {
-                            iceCandidateArray.add(IceCandidate(dataSnapshot["sdpMid"].toString(), Math.toIntExact(dataSnapshot["sdpMLineIndex"] as Long), dataSnapshot["sdp"].toString()))
-                        } else if (dataSnapshot.contains("type") && dataSnapshot["type"]=="answerCandidate") {
-                            iceCandidateArray.add(IceCandidate(dataSnapshot["sdpMid"].toString(), Math.toIntExact(dataSnapshot["sdpMLineIndex"] as Long), dataSnapshot["sdp"].toString()))
-                        }
-                    }
-                    peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
+    suspend fun endCall(meetingID: String) {
+        val candidates = db.collection(CALLS_COLLECTION).document(meetingID).collection(CANDIDATES_COLLECTION).get().await()
+        if (candidates != null){
+            val iceCandidateArray: MutableList<IceCandidate> = mutableListOf()
+            candidates.forEach { dataSnapshot->
+                if (dataSnapshot.contains(FIELD_TYPE) && dataSnapshot[FIELD_TYPE]=="offerCandidate") {
+                    iceCandidateArray.add(IceCandidate(dataSnapshot["sdpMid"].toString(), Math.toIntExact(dataSnapshot["sdpMLineIndex"] as Long), dataSnapshot["sdp"].toString()))
+                } else if (dataSnapshot.contains(FIELD_TYPE) && dataSnapshot["type"]=="answerCandidate") {
+                    iceCandidateArray.add(IceCandidate(dataSnapshot["sdpMid"].toString(), Math.toIntExact(dataSnapshot["sdpMLineIndex"] as Long), dataSnapshot["sdp"].toString()))
                 }
-        val endCall = hashMapOf(
-                "type" to "END_CALL"
-        )
-        db.collection("calls").document(meetingID)
-                .set(endCall)
-                .addOnSuccessListener {
-                    Log.e(TAG, "Call Ended!")
-                }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "Call Ended: Error adding document", e)
-                }
+            }
+            peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
 
-        peerConnection?.close()
+            // update type
+            val endCall = hashMapOf("type" to "END_CALL")
+            db.collection("calls").document(meetingID).update(endCall.toMap()).await()
+            peerConnection?.close()
+
+        }
+
+
     }
 
-    fun enableVideo(videoEnabled: Boolean) {
+    suspend fun enableVideo(videoEnabled: Boolean) {
         if (localVideoTrack != null)
             localVideoTrack?.setEnabled(videoEnabled)
     }
 
-    fun enableAudio(audioEnabled: Boolean) {
+    suspend fun enableAudio(audioEnabled: Boolean) {
         if (localAudioTrack != null)
             localAudioTrack?.setEnabled(audioEnabled)
     }
 
     fun switchCamera() {
-        videoCapturer.switchCamera(null)
+        videoCapture.switchCamera(null)
     }
 }

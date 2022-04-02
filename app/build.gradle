@@ -62,16 +62,20 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.0")
 
+    // Web RTC
     implementation 'org.webrtc:google-webrtc:1.0.32006'
 
-    implementation platform('com.google.firebase:firebase-bom:27.0.0')
-    implementation 'com.google.firebase:firebase-analytics-ktx'
 
+    // firebase
+    implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation platform('com.google.firebase:firebase-bom:27.0.0')
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.4.1'
 
 
     // material progress bar
     implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
+
 
     //Ktor dependencies (you can retorfit instead)
     implementation("io.ktor:ktor-client-android:$ktor_version")

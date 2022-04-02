@@ -368,7 +368,7 @@ class RTCAudioManager(context: Context) {
             }
         }
         // Store state which is set to true if the device list has changed.
-        var audioDeviceSetUpdated = audioDevices != newAudioDevices
+        val audioDeviceSetUpdated = audioDevices != newAudioDevices
         // Update the existing audio device set.
         audioDevices = newAudioDevices
         // Correct user selected audio devices if needed.
@@ -386,16 +386,16 @@ class RTCAudioManager(context: Context) {
 
         // Update selected audio device.
         val newAudioDevice: AudioDevice?
-        if (hasWiredHeadset) {
+        newAudioDevice = if (hasWiredHeadset) {
             // If a wired headset is connected, but Bluetooth is not, then wired headset is used as
             // audio device.
-            newAudioDevice = AudioDevice.WIRED_HEADSET
+            AudioDevice.WIRED_HEADSET
         } else {
             // No wired headset and no Bluetooth, hence the audio-device list can contain speaker
             // phone (on a tablet), or speaker phone and earpiece (on mobile phone).
             // |defaultAudioDevice| contains either AudioDevice.SPEAKER_PHONE or AudioDevice.EARPIECE
             // depending on the user's selection.
-            newAudioDevice = defaultAudioDevice
+            defaultAudioDevice
         }
         // Switch to new device but only if there has been any changes.
         if (newAudioDevice != selectedAudioDevice || audioDeviceSetUpdated) {
