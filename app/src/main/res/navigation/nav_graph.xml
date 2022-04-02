@@ -7,22 +7,26 @@
 
     <fragment
         android:id="@+id/mainScreen"
-        android:name="com.example.webrtc.screens.main.MainScreen"
+        android:name="com.example.webrtc.screens.main.Main"
         android:label="MainScreen"
         tools:layout="@layout/main_screen">
         <action
             android:id="@+id/action_mainScreen_to_videoCallScreen"
-            app:destination="@id/videoCallScreen" />
+            app:destination="@id/videoCallScreen"
+            app:popUpTo="@id/videoCallScreen"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
         android:id="@+id/videoCallScreen"
-        android:name="com.example.webrtc.screens.videocall.VideoCallScreen"
+        android:name="com.example.webrtc.screens.encounter.Encounter"
         android:label="VideoCallScreen"
         tools:layout="@layout/video_call_screen">
         <action
-            android:id="@+id/action_videoCallScreen_to_mainScreen"
-            app:destination="@id/mainScreen" />
+            android:id="@+id/action_encounter_to_main"
+            app:destination="@id/mainScreen"
+            app:popUpTo="@id/mainScreen"
+            app:popUpToInclusive="true" />
         <argument
             android:name="isjson"
             app:argType="boolean"

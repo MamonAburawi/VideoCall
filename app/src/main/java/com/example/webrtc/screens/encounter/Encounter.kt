@@ -1,4 +1,4 @@
-package com.example.webrtc.screens.videocall
+package com.example.webrtc.screens.encounter
 
 import android.Manifest
 
@@ -17,11 +17,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.webrtc.R
-import com.example.webrtc.databinding.VideoCallScreenBinding
+import com.example.webrtc.databinding.EncounterBinding
 import com.example.webrtc.webrtc.*
 import io.ktor.util.*
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -33,7 +32,7 @@ import org.webrtc.*
 @KtorExperimentalAPI
 @ExperimentalCoroutinesApi
 @RequiresApi(Build.VERSION_CODES.N)
-class VideoCallScreen : Fragment() {
+class Encounter : Fragment() {
 
     companion object {
         private const val CAMERA_AUDIO_PERMISSION_REQUEST_CODE = 1
@@ -49,91 +48,118 @@ class VideoCallScreen : Fragment() {
     private var meetingID : String = ""
     private var isJoin = false
 
-    private lateinit var binding: VideoCallScreenBinding
-    private lateinit var viewModel: VideoCallViewModel
+
+
+    private lateinit var binding: EncounterBinding
+//    private lateinit var viewModel: EncounterViewModel
+    private val viewModel by activityViewModels<EncounterViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = DataBindingUtil.inflate(inflater, R.layout.video_call_screen,container,false)
+        binding = DataBindingUtil.inflate(inflater, R.layout.encounter,container,false)
 
-        meetingID = arguments?.get("meeting_id") as String
-        isJoin = arguments?.get("isjson") as Boolean
 
-//        val factory = VideoCallFactory(requireActivity().application)
-        viewModel = ViewModelProviders.of(this).get(VideoCallViewModel::class.java)
+        meetingID = arguments?.get("meetingId") as String
+        isJoin = arguments?.get("isJoin") as Boolean
+
+        setObserves()
+        setViews()
+
+
+//        viewModel = ViewModelProviders.of(this).get(EncounterViewModel::class.java)
 
 
         checkCameraAndAudioPermission()
 
-        // isSpeakerEnabled
-        viewModel.inSpeakerMode.observe(viewLifecycleOwner, Observer { inSpeaker ->
-            if(inSpeaker){
-                binding.audioOutputButton.setImageResource(R.drawable.ic_speaker)
-            }else{
-                binding.audioOutputButton.setImageResource(R.drawable.ic_baseline_hearing)
-            }
-        })
 
 
-        // isVideoResumed
-        viewModel.isVideoResumed.observe(viewLifecycleOwner, Observer { isVideoResumed ->
-            if(isVideoResumed){
-                binding.videoButton.setImageResource(R.drawable.ic_videocamera_on)
-            }else{
-                binding.videoButton.setImageResource(R.drawable.ic_videocamera_off)
-            }
-        })
-
-        // isMuted
-        viewModel.isUnMute.observe(viewLifecycleOwner, Observer { isMuted ->
-            if(isMuted){
-                binding.micButton.setImageResource(R.drawable.ic_microphone_on)
-            }else{
-                binding.micButton.setImageResource(R.drawable.ic_microphone_off)
-            }
-        })
+//        viewModel.navigateToMain.observe(viewLifecycleOwner){
+//            if (it != null){
+////                viewModel.endCall(meetingID)
+//
+//                    binding.remoteView.isGone = false
+//                    Constants.isCallEnded = true
+//                    findNavController().navigate(R.id.action_encounter_to_main)
+//                    viewModel.navigateToMainDone()
+////                    Toast.makeText(requireContext(),"navigate to main",Toast.LENGTH_SHORT).show()
+////
+//
+//
+//            }
+//        }
 
 
 
-
-
-        binding.apply {
-
-
-
-//            viewModel.call(meetingID)
-
-
-            switchCameraButton.setOnClickListener {
-                viewModel.switchCamera()
-            }
-
-            audioOutputButton.setOnClickListener {
-                viewModel.isSpeakerEnabled()
-            }
-
-            videoButton.setOnClickListener {
-                viewModel.isVideoResumed()
-            }
-
-            micButton.setOnClickListener {
-                viewModel.isMicrophoneEnabled()
-            }
-
-            endCallButton.setOnClickListener {
-                viewModel.endCall(meetingID)
-                    remoteView.isGone = false
-                    Constants.isCallEnded = true
-                    findNavController().navigate(R.id.action_videoCallScreen_to_mainScreen)
-            }
-
-
-        }
 
         return binding.root
 
 
     }
+
+    private fun setViews() {
+        binding.apply {
+
+            encounterViewModel = viewModel
+            lifecycleOwner = this@Encounter
+
+            btnSwitchCamera.setOnClickListener {
+                viewModel.switchCamera()
+            }
+
+            btnAudioOutput.setOnClickListener {
+                viewModel.isSpeakerEnabled()
+            }
+
+            btnVideo.setOnClickListener {
+                viewModel.isVideoResumed()
+            }
+
+            btnMic.setOnClickListener {
+                viewModel.isMicrophoneEnabled()
+            }
+
+            btnEndCall.setOnClickListener {
+                binding.remoteView.isGone = false
+                Constants.isCallEnded = true
+                findNavController().navigate(R.id.action_encounter_to_main)
+                viewModel.endCall(meetingID)
+
+            }
+
+        }
+    }
+
+    private fun setObserves() {
+        // isSpeakerEnabled
+//        viewModel.inSpeakerMode.observe(viewLifecycleOwner) { inSpeaker ->
+//            if(inSpeaker){
+//                binding.btnAudioOutput.setImageResource(R.drawable.ic_speaker)
+//            }else{
+//                binding.btnAudioOutput.setImageResource(R.drawable.ic_baseline_hearing)
+//            }
+//        }
+
+
+//        // isVideoResumed
+//        viewModel.isVideoResumed.observe(viewLifecycleOwner) { isVideoResumed ->
+//            if(isVideoResumed){
+//                binding.btnVideo.setImageResource(R.drawable.ic_videocamera_on)
+//            }else{
+//                binding.btnVideo.setImageResource(R.drawable.ic_videocamera_off)
+//            }
+//        }
+
+//        // isMuted
+//        viewModel.isUnMute.observe(viewLifecycleOwner) { isMuted ->
+//            if(isMuted){
+//                binding.btnMic.setImageResource(R.drawable.ic_microphone_on)
+//            }else{
+//                binding.btnMic.setImageResource(R.drawable.ic_microphone_off)
+//            }
+//        }
+
+    }
+
 
     private fun checkCameraAndAudioPermission() {
         if ((ContextCompat.checkSelfPermission(requireActivity(), CAMERA_PERMISSION) != PackageManager.PERMISSION_GRANTED) &&
@@ -155,7 +181,7 @@ class VideoCallScreen : Fragment() {
         override fun onConnectionEstablished() {
 
             Log.i(TAG,"onConnection Stable")
-            binding.endCallButton.isClickable = true
+            binding.btnEndCall.isClickable = true
         }
 
 
@@ -180,15 +206,36 @@ class VideoCallScreen : Fragment() {
             viewModel.onIceCandidateReceived(iceCandidate)
         }
 
+        override fun onErrorConnection(error: String) {
+
+            // TODO: catch any error connection during calling
+        }
+
+
         override fun onCallEnded() {
-            if (!Constants.isCallEnded) {
-                Constants.isCallEnded = true
-                viewModel.endCall(meetingID)
+
+          // todo you can navigate the answer to the previous screen without app crash user user id if user id is not
+//                findNavController().navigate(R.id.action_encounter_to_main)
+
+           try {
+               findNavController().navigate(R.id.action_encounter_to_main)
+           }catch (ex: Exception){
+               Log.e(TAG,ex.message.toString())
+           }
+
+
+
+
+//                viewModel.endCall(meetingID)
+//                Toast.makeText(requireContext(),"Call ended",Toast.LENGTH_SHORT).show()
 //                signallingClient.destroy() /// remove this line if there is any error
-               findNavController().navigate(R.id.action_videoCallScreen_to_mainScreen)
-            }
+//               findNavController().navigate(R.id.action_encounter_to_main)
+
+
+
         }
     }
+
 
     private fun requestCameraAndAudioPermission(dialogShown: Boolean = false) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), CAMERA_PERMISSION) &&
@@ -228,6 +275,10 @@ class VideoCallScreen : Fragment() {
         Toast.makeText(requireActivity(), "Camera and Audio Permission Denied", Toast.LENGTH_LONG).show()
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.initAudios()
+    }
 
     override fun onDestroy() {
         signallingClient.destroy()

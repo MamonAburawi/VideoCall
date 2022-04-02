@@ -70,6 +70,7 @@ class SignalingClient(
                     .addSnapshotListener { snapshot, e ->
                         if(e == null && snapshot!!.exists()){
                             val candidate = snapshot.toObject(Call::class.java)
+                            Log.i(TAG,"call state: ${candidate?.type}")
                             when (candidate?.type) {
                                 CallState.OFFER.name -> { // offer
                                     listener.onOfferReceived(SessionDescription(SessionDescription.Type.OFFER,candidate.sdp))
@@ -79,9 +80,11 @@ class SignalingClient(
                                     listener.onAnswerReceived(SessionDescription(SessionDescription.Type.ANSWER,candidate.sdp))
                                     sdpType = CallState.ANSWER.name
                                 }
-                                CallState.CALL_ENDED.name -> {
+                                CallState.END_CALL.name -> { // call ended
                                     listener.onCallEnded()
-                                    sdpType = CallState.CALL_ENDED.name
+                                    sdpType = CallState.END_CALL.name
+
+                                    // TODO: fix this issue the onCall ended function does not called !
                                 }
                             }
                         }
@@ -108,6 +111,8 @@ class SignalingClient(
                         }
                     }
             }
+
+
 
 
 

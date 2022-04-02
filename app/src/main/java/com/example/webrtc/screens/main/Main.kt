@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -15,12 +16,13 @@ import com.example.webrtc.databinding.MainScreenBinding
 import com.example.webrtc.webrtc.Constants
 
 
-class MainScreen : Fragment() {
+class Main : Fragment() {
 
 //    private val db = Firebase.firestore
     private lateinit var binding: MainScreenBinding
     private lateinit var viewModel: MainViewModel
     private var meetingId = ""
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -44,8 +46,10 @@ class MainScreen : Fragment() {
                     if (type == "OFFER" || type == "ANSWER" || type == "END_CALL"){
                         etMeetingId.error = "Please enter new meeting ID"
                     }else{
-                        findNavController().navigate(MainScreenDirections
-                                .actionMainScreenToVideoCallScreen(false,meetingId))
+                        val data = bundleOf("isJoin" to false , "meetingId" to meetingId)
+                        findNavController().navigate(R.id.action_mainScreen_to_videoCallScreen,data)
+//                        findNavController().navigate(MainScreenDirections
+//                                .actionMainScreenToVideoCallScreen(false,meetingId))
                     }
                 }
             })
@@ -73,8 +77,10 @@ class MainScreen : Fragment() {
                 if (meetingId.isNullOrEmpty())
                     etMeetingId.error = "Please enter meeting id"
                 else {
-                    findNavController().navigate(MainScreenDirections
-                            .actionMainScreenToVideoCallScreen(true,meetingId))
+                    val data = bundleOf("isJoin" to true , "meetingId" to meetingId)
+                    findNavController().navigate(R.id.action_mainScreen_to_videoCallScreen,data)
+//                    findNavController().navigate(MainScreenDirections
+//                            .actionMainScreenToVideoCallScreen(true,meetingId))
                 }
             }
 

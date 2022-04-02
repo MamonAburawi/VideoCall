@@ -262,8 +262,8 @@ class RTCClient(
             peerConnection?.removeIceCandidates(iceCandidateArray.toTypedArray())
 
             // update type
-            val endCall = hashMapOf("type" to "END_CALL")
-            db.collection("calls").document(meetingID).update(endCall.toMap()).await()
+            val endCall = hashMapOf(FIELD_TYPE to CallState.END_CALL)
+            db.collection(CALLS_COLLECTION).document(meetingID).update(endCall.toMap()).await()
             peerConnection?.close()
 
         }

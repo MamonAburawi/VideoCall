@@ -4,7 +4,7 @@ import android.app.Application
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.example.webrtc.databinding.VideoCallScreenBinding
+import com.example.webrtc.databinding.EncounterBinding
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.webrtc.*
@@ -15,7 +15,7 @@ import org.webrtc.*
 @DelicateCoroutinesApi
 class RTCClientManager(
     application: Application,
-    private val binding: VideoCallScreenBinding,
+    private val binding: EncounterBinding,
     val signalingClient: SignalingClient,
     sdpObserver: AppSdpObserver,
     isJoin: Boolean,
@@ -68,7 +68,7 @@ class RTCClientManager(
     init {
 
         rtcClient = RTCClient(application,
-            object : PeerConnectionObserver(){
+            object : PeerConnectionObserver{
 
                 override  fun onIceCandidate(p0: IceCandidate?) {
                     super.onIceCandidate(p0)

@@ -2,7 +2,7 @@ package com.example.webrtc.webrtc
 
 import org.webrtc.*
 
-open class PeerConnectionObserver : PeerConnection.Observer {
+interface PeerConnectionObserver : PeerConnection.Observer {
 
     override  fun onIceCandidate(p0: IceCandidate?) {}
 

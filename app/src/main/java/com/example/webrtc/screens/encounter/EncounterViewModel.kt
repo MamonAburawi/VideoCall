@@ -1,10 +1,10 @@
-package com.example.webrtc.screens.videocall
+package com.example.webrtc.screens.encounter
 
 import android.app.Application
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
-import com.example.webrtc.databinding.VideoCallScreenBinding
+import com.example.webrtc.databinding.EncounterBinding
 import com.example.webrtc.webrtc.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
@@ -14,7 +14,7 @@ import org.webrtc.*
 @KtorExperimentalAPI
 @DelicateCoroutinesApi
 @RequiresApi(Build.VERSION_CODES.N)
-class VideoCallViewModel(application: Application): AndroidViewModel(application) {
+class EncounterViewModel(application: Application): AndroidViewModel(application) {
 
     val app = application
 
@@ -37,14 +37,19 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
     private val _isUnMute = MutableLiveData<Boolean>()
     val isUnMute: LiveData<Boolean> = _isUnMute
 
-    private val _isVideoResumed = MutableLiveData<Boolean>()
-    val isVideoResumed: LiveData<Boolean> = _isVideoResumed
+    private val _isVideoEnable = MutableLiveData<Boolean>()
+    val isVideoEnable: LiveData<Boolean> = _isVideoEnable
+
+    private val _navigateToMain = MutableLiveData<Boolean?>()
+    val navigateToMain: LiveData<Boolean?> = _navigateToMain
+
 
     private lateinit var rtcClientManager : RTCClientManager
 
 
 
-    private val sdpObserver = object : AppSdpObserver() {
+
+    private val sdpObserver = object : AppSdpObserver {
         override fun onCreateSuccess(p0: SessionDescription?) {
             super.onCreateSuccess(p0)
         }
@@ -52,16 +57,13 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
 
 
 
-
     init {
-        _inSpeakerMode.value = true
-        _isUnMute.value = true
-        _isVideoResumed.value = true
+        initAudios()
         audioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
     }
 
     fun initConnection(
-        binding: VideoCallScreenBinding,
+        binding: EncounterBinding,
         signallingClient: SignalingClient,
         isJoin: Boolean,
         meetingID: String
@@ -69,7 +71,19 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
         rtcClientManager = RTCClientManager(app,binding,signallingClient,sdpObserver,isJoin,meetingID)
     }
 
+    fun initAudios(){
+        _inSpeakerMode.value = true
+        _isUnMute.value = true
+        _isVideoEnable.value = true
+    }
 
+    fun navigateToMain(){
+        _navigateToMain.value = true
+    }
+
+    fun navigateToMainDone(){
+        _navigateToMain.value = false
+    }
 
     fun isSpeakerEnabled(){
         jobMain.launch {
@@ -94,8 +108,8 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
 
     fun isVideoResumed(){
         viewModelScope.launch {
-            _isVideoResumed.value = isVideoResumed.value != true
-            rtcClientManager.enableVideo(isVideoResumed.value!!)
+            _isVideoEnable.value = isVideoEnable.value != true
+            rtcClientManager.enableVideo(isVideoEnable.value!!)
         }
     }
 
@@ -124,9 +138,11 @@ class VideoCallViewModel(application: Application): AndroidViewModel(application
 
     fun endCall(meetingID: String){
         jobMain.launch {
+
             rtcClientManager.endCall(meetingID)
             rtcClientManager.enableAudio(false)
             rtcClientManager.enableVideo(false)
+
 
             audioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.NONE)
         }

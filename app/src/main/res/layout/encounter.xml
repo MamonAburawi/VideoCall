@@ -4,13 +4,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
+        <variable
+            name="encounterViewModel"
+            type="com.example.webrtc.screens.encounter.EncounterViewModel" />
 
     </data>
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".screens.main.MainScreen">
+        tools:context=".screens.main.Main">
 
         <org.webrtc.SurfaceViewRenderer
             android:id="@+id/remote_view"
@@ -43,9 +46,10 @@
                 android:layout_height="wrap_content">
 
                 <ImageView
-                    android:id="@+id/mic_button"
+                    android:id="@+id/btn_Mic"
                     android:layout_width="0dp"
                     android:layout_weight="1"
+                    setMic="@{encounterViewModel.isUnMute()}"
                     android:layout_height="wrap_content"
                     android:layout_margin="16dp"
                     android:clickable="true"
@@ -56,9 +60,10 @@
                     app:srcCompat="@drawable/ic_microphone_on" />
 
                 <ImageView
-                    android:id="@+id/video_button"
+                    android:id="@+id/btn_Video"
                     android:layout_width="0dp"
                     android:layout_weight="1"
+                    setVideo="@{encounterViewModel.isVideoEnable()}"
                     android:layout_height="wrap_content"
                     android:layout_margin="16dp"
                     android:clickable="true"
@@ -69,7 +74,7 @@
                     app:srcCompat="@drawable/ic_videocamera_on" />
 
                 <ImageView
-                    android:id="@+id/end_call_button"
+                    android:id="@+id/btn_EndCall"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
@@ -82,7 +87,7 @@
                     app:srcCompat="@drawable/ic_call_end" />
 
                 <ImageView
-                    android:id="@+id/switch_camera_button"
+                    android:id="@+id/btn_SwitchCamera"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
@@ -94,11 +99,12 @@
                     app:srcCompat="@drawable/ic_camera_switch" />
 
                 <ImageView
-                    android:id="@+id/audio_output_button"
+                    android:id="@+id/btn_audioOutput"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:clickable="true"
+                    setSpeaker="@{encounterViewModel.inSpeakerMode}"
                     android:focusable="true"
                     android:layout_margin="16dp"
                     android:padding="12dp"

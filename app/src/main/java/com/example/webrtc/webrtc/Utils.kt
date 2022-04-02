@@ -2,7 +2,7 @@ package com.example.webrtc.webrtc
 
 enum class CandidateType{ offerCandidate, answerCandidate}
 
-enum class CallState{ CALL_ENDED, ANSWER, OFFER , CALLING }
+enum class CallState{ END_CALL, ANSWER, OFFER , CALLING }
 
 
 class Constants {
