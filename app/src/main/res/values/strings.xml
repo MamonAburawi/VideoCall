@@ -2,4 +2,6 @@
     <string name="app_name">WebRTC</string>
     <string name="pref_speakerphone_key">speakerphone_preference</string>
     <string name="pref_speakerphone_default">auto</string>
+    <string name="login_error_message">Error Occurred!</string>
+    <string name="user_is_not_exist">user is not exist!</string>
 </resources>

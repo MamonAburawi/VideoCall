@@ -3,6 +3,10 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Mamon Aburawi/Desktop/VideoCall/app/src/main/res/font/nunito_sans.xml" value="0.284375" />
+        <entry key="..\:/Users/Mamon Aburawi/Desktop/VideoCall/app/src/main/res/layout/circular_loader_layout.xml" value="0.25416666666666665" />
+        <entry key="..\:/Users/Mamon Aburawi/Desktop/VideoCall/app/src/main/res/layout/encounter.xml" value="0.25" />
+        <entry key="..\:/Users/Mamon Aburawi/Desktop/VideoCall/app/src/main/res/layout/login.xml" value="0.264" />
         <entry key="..\:/Users/Mamon Aburawi/Desktop/VideoCall/app/src/main/res/layout/video_call_screen.xml" value="0.176" />
       </map>
     </option>
