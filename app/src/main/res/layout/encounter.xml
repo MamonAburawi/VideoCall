@@ -7,7 +7,6 @@
         <variable
             name="encounterViewModel"
             type="com.example.webrtc.screens.encounter.EncounterViewModel" />
-
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -105,11 +104,11 @@
 
                 <ImageView
                     android:id="@+id/btn_Mic"
-                    setMic="@{encounterViewModel.isUnMute()}"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="16dp"
                     android:layout_weight="1"
+                    setMic="@{encounterViewModel.isUnMute()}"
                     android:background="@drawable/circle_background"
                     android:clickable="true"
                     android:focusable="true"
@@ -119,13 +118,13 @@
 
                 <ImageView
                     android:id="@+id/btn_Video"
-                    setVideo="@{encounterViewModel.isVideoEnable()}"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="16dp"
                     android:layout_weight="1"
                     android:background="@drawable/circle_background"
                     android:clickable="true"
+                    setVideo="@{encounterViewModel.isVideoEnable()}"
                     android:focusable="true"
                     android:padding="12dp"
                     app:backgroundTint="@color/cardview_dark_background"
@@ -158,11 +157,11 @@
 
                 <ImageView
                     android:id="@+id/btn_audioOutput"
-                    setSpeaker="@{encounterViewModel.inSpeakerMode}"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="16dp"
                     android:layout_weight="1"
+                    setSpeaker="@{encounterViewModel.inSpeakerMode}"
                     android:background="@drawable/circle_background"
                     android:clickable="true"
                     android:focusable="true"

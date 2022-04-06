@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".screens.main.Home">
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:background="@color/blue">
+
+            <TextView
+                android:layout_margin="16dp"
+                android:layout_gravity="center"
+                android:textColor="@color/white"
+                style="@style/TextAppearance.AppCompat.Large"
+                android:text="Call Now.."
+                android:textSize="30sp"
+                android:elevation="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <EditText
+                android:padding="16dp"
+                android:layout_margin="16dp"
+                android:background="@drawable/curve_background"
+                android:hint="Enter Meeting ID"
+                android:id="@+id/et_meetingId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:weightSum="2"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="match_parent"
+                    android:id="@+id/btn_startMeeting"
+                    android:layout_marginBottom="32dp"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    app:cornerRadius="8dp"
+                    android:textColor="@color/black"
+                    android:layout_weight="1"
+                    app:backgroundTint="@color/white"
+                    android:text="Call"
+                    android:layout_height="wrap_content" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="match_parent"
+                    android:id="@+id/btn_joinMeeting"
+                    android:layout_marginBottom="32dp"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    app:cornerRadius="8dp"
+                    android:textColor="@color/black"
+                    android:layout_weight="1"
+                    app:backgroundTint="@color/white"
+                    android:text="Join"
+                    android:layout_height="wrap_content" />
+
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </FrameLayout>
+</layout>
